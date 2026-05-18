@@ -51,6 +51,12 @@
 - 标题文字左边距 16px
 - 标题文字字号 16px，字重 600
 - 无底部分割线
+- **关闭按钮位置**：关闭按钮（"X" 或 Close Icon）必须位于标题栏的**最右侧**（即右上角）。
+- **左边距与排版**：标题文字靠左对齐，关闭按钮靠最右侧对齐，二者水平拉开，绝对禁止将关闭按钮放置在标题文字的左侧。
+- **排版实现原则**：标题栏整体必须采用水平 flex 布局（确保标题文字与关闭按钮自动分布在容器两端，左标题右按钮）。
+- **Ant Design Vue 4.x 专项适配指南**（防范关闭按钮错位及高度异常）：
+  - **关闭按钮右置**：在 Ant Design Vue 4.x 中，默认的 DOM 树顺序是关闭按钮（`.ant-drawer-close`）在标题（`.ant-drawer-title`）之前。要实现左标题右按钮，**必须**在 `.ant-drawer-header-title` 上使用 `flex-direction: row-reverse !important;`，或者通过 `order` 属性改变渲染顺序（标题 `order: 1`，关闭按钮 `order: 2`）。
+  - **高度精准锁定**：AntD 默认对 `.ant-drawer-header` 设置了 `min-height: 56px`。要锁定 48px 高度，除了设置 `height: 48px !important;` 之外，**必须**显式设置 `min-height: 48px !important;` 清除其默认拉伸。
 
 ## 内容区域
 
