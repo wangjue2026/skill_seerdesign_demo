@@ -339,7 +339,93 @@ motionEaseOutQuint:  cubic-bezier(0.22, 1, 0.36, 1)
 
 ---
 
-## 自检 12 条 checklist（下游 agent 写代码前过一遍）
+## 规则 18 — CSS 覆写 !important 特异性冲突
+
+❌ **Don't**：
+```css
+/* 通配式规则 */
+:deep(.ant-form) .ant-select,
+:deep(.ant-form) .slider-input-group {
+  width: 100% !important;
+}
+
+/* 然后在外层写约束 */
+.align-with-slider {
+  width: 440px !important;    /* 被上面的规则覆盖，因为特异性更高 */
+}
+```
+
+✅ **Do**：
+```css
+/* 方式一：用 :not() 排除需要约束的元素 */
+:deep(.ant-form) .ant-select:not(.align-with-slider) {
+  width: 100% !important;
+}
+
+/* 方式二：约束规则使用相同或更高的特异性 */
+:deep(.ant-form) .align-with-slider {
+  width: 440px !important;
+  max-width: 440px !important;
+}
+```
+
+**为什么**：两条规则都带 `!important` 时，CSS 层叠不看 `!important`，而是比较选择器特异性。`:deep(.ant-form) .ant-select` 比 `.align-with-slider` 特异性更高，所以 `100%` 永远赢。这种"自己写的样式打架"是最难排查的布局 Bug。
+
+**强制要求**：
+1. 写任何 `!important` 规则前，先搜索当前文件中是否已有针对同一属性的其他 `!important` 规则
+2. 如果存在冲突，必须在同一处统一处理，不要在不同位置分别写
+3. 避免通配式 `width: 100% !important`，优先用 `flex: 1; min-width: 0` 等自适应方案替代
+
+---
+
+## 规则 19 — Label 宽度纯数学推算
+
+❌ **Don't**：
+```
+假设：12px 字号 → 每个中文字恰好 12px 宽
+计算：5字 × 12px = 60px + 12px(星号) + 16px(间距) = 88px
+结论：label 列宽设 88px ✓
+```
+
+✅ **Do**：
+1. 先设一个合理初始值（如最长 label 字数 × 14px + 星号占位 + 间距）
+2. **必须在浏览器中实测**：用 DevTools 选中 label 元素，查看实际 `offsetWidth`
+3. 根据实测结果微调，确保最长 label 右边缘到控件左边缘恰好 = 规范间距（16px）
+
+**为什么**：中文字符在不同字体（PingFang SC / Microsoft YaHei / Noto Sans CJK）下的实际渲染宽度不等于 font-size。12px 字号的中文字实际宽度通常在 12~14px 之间（因字体 metrics、字间距、亚像素渲染差异）。纯数学推算会导致间距偏差 4~8px，肉眼可见。
+
+**建议公式（安全初始值）**：
+```
+label列宽 = 最长label字数 × 14 + 星号占位(12px) + 间距(16px)
+```
+用 14 而非 12 作为中文字符宽度估算值，可以覆盖大多数字体的渲染差异。
+
+---
+
+## 规则 20 — 跳过视觉验证直接交付
+
+❌ **Don't**：
+```
+修改 CSS → npm run build 通过 → 告知用户"已完成" → 用户截图发现布局不对
+```
+
+✅ **Do**：
+```
+修改 CSS → npm run build 通过 → 浏览器截图/DevTools 审查实际渲染 → 确认布局正确 → 告知用户已完成
+```
+
+**为什么**：`npm run build` 只验证语法和类型正确性，不验证视觉效果。CSS 特异性冲突、字体渲染差异、flex 溢出等布局问题都能通过编译但渲染错误。布局修改的唯一验收标准是**浏览器实际渲染结果**，不是编译状态。
+
+**强制工作流**：
+1. 修改样式代码后，先确保编译通过
+2. 在浏览器中打开目标页面，检查修改区域的实际渲染
+3. 如果有 DevTools MCP 可用，使用截图或 snapshot 工具检查
+4. 如果没有 DevTools，至少向用户说明需要人工确认视觉效果，不要声称"已完成"
+5. 对比参考截图（如有），逐项确认：间距、宽度、对齐、颜色
+
+---
+
+## 自检 15 条 checklist（下游 agent 写代码前过一遍）
 
 1. ✅ 颜色全部用 `var(--sase-color-*)` 而不是 hex？
 2. ✅ 间距是 2/4/8/12/16/24/32 之一？
@@ -353,3 +439,7 @@ motionEaseOutQuint:  cubic-bezier(0.22, 1, 0.36, 1)
 10. ✅ 动效用 motion token？
 11. ✅ disabled 状态 cursor 是 not-allowed？
 12. ✅ 响应式用了 4 断点之一（不是任意 px）？
+13. ✅ 同一属性是否存在多条 `!important` 规则互相覆盖？（规则 18）
+14. ✅ Label 宽度是否在浏览器中实测过，而非纯数学推算？（规则 19）
+15. ✅ 布局/样式修改后是否在浏览器中做过视觉验证？（规则 20）
+
