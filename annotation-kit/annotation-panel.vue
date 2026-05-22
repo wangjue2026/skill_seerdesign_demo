@@ -1,9 +1,8 @@
 <template>
-  <Teleport to="body">
-    <div class="sase-live-agent">
+  <div class="sase-live-agent" ref="agentRef">
     <!-- 📍 ================== 绝对坐标标定透明遮罩层 ================== -->
     <div v-if="isPlacingDot" class="lda-overlay-mask" @click="handleGridClick" @mousemove="handleGridMouseMove">
-      <div class="lda-crosshair-tooltip" :style="{ left: mouseX + 15 + 'px', top: mouseY + 15 + 'px' }">
+      <div class="lda-crosshair-tooltip" :style="{ left: localMouseX + 15 + 'px', top: localMouseY + 15 + 'px' }">
         <div style="display:flex;align-items:center;gap:4px;">
           <span class="lda-ping-dot"></span>
           <span>在目标位置点击打点 📍</span>
@@ -181,8 +180,7 @@
         </div>
       </div>
     </div>
-    </div>
-  </Teleport>
+  </div>
 </template>
 <script setup>
 import { ref, computed, onMounted } from 'vue';
@@ -199,8 +197,9 @@ const isPlacingDot = ref(false);
 const comments = ref([]);
 const editingIndex = ref(null);
 
-const mouseX = ref(0);
-const mouseY = ref(0);
+const agentRef = ref(null);
+const localMouseX = ref(0);
+const localMouseY = ref(0);
 const tempXPercent = ref(0);
 const tempYPercent = ref(0);
 const showAddModal = ref(false);
@@ -244,7 +243,11 @@ function storageKey() {
 
 async function loadFromFile() {
   try {
-    const fsPath = props.filePath.startsWith('/') ? '/@fs' + props.filePath : props.filePath;
+    let fsPath = props.filePath;
+    // 兼容老版本注入的绝对路径（如 /Users/...）。如果是 Vite 根目录的相对路径（/src/... 等），则直接使用
+    if (fsPath.startsWith('/') && !fsPath.startsWith('/src') && !fsPath.startsWith('/SKillS')) {
+      fsPath = '/@fs' + fsPath;
+    }
     // Add cache buster query so browser module cache doesn't return stale file content
     const module = await import(/* @vite-ignore */ fsPath + '?raw&t=' + Date.now());
     const rawText = module.default || '';
@@ -336,10 +339,17 @@ const enterPlacementMode = () => {
 };
 
 const handleGridMouseMove = (e) => {
-  mouseX.value = e.clientX;
-  mouseY.value = e.clientY;
-  tempXPercent.value = Math.max(0, Math.min(100, (e.clientX / window.innerWidth) * 100));
-  tempYPercent.value = Math.max(0, Math.min(100, (e.clientY / window.innerHeight) * 100));
+  if (!agentRef.value || !agentRef.value.parentElement) return;
+  const rect = agentRef.value.parentElement.getBoundingClientRect();
+  
+  const relativeX = e.clientX - rect.left;
+  const relativeY = e.clientY - rect.top;
+  
+  localMouseX.value = relativeX;
+  localMouseY.value = relativeY;
+  
+  tempXPercent.value = Math.max(0, Math.min(100, (relativeX / rect.width) * 100));
+  tempYPercent.value = Math.max(0, Math.min(100, (relativeY / rect.height) * 100));
 };
 
 const handleGridClick = () => {
@@ -432,7 +442,16 @@ const copyMarkdown = () => {
   showToast('📋 Markdown 已成功复制到剪贴板！');
 };
 
-onMounted(initData);
+onMounted(() => {
+  if (agentRef.value && agentRef.value.parentElement) {
+    const parent = agentRef.value.parentElement;
+    const style = window.getComputedStyle(parent);
+    if (style.position === 'static') {
+      parent.style.position = 'relative';
+    }
+  }
+  initData();
+});
 </script>
 
 <style>
@@ -444,7 +463,7 @@ onMounted(initData);
 
 .sase-live-agent {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 9999999;
   pointer-events: none;
@@ -452,7 +471,7 @@ onMounted(initData);
 
 /* Overlay mask for placement mode */
 .sase-live-agent .lda-overlay-mask {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background-color: rgba(30, 27, 75, 0.1);
   backdrop-filter: blur(1px);
@@ -500,7 +519,7 @@ onMounted(initData);
 
 /* Dots layer */
 .sase-live-agent .lda-dots-layer {
-  position: fixed;
+  position: absolute;
   inset: 0;
   pointer-events: none;
   z-index: 999997;

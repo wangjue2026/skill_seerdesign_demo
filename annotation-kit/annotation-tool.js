@@ -68,20 +68,25 @@ if (!hasScriptSetup) {
 }
 
 // 3. 在 <template> 中插入 AnnotationPanel 作为覆盖层
+const rootRelativePath = '/' + path.relative(process.cwd(), path.resolve(vueFile)).replace(/\\/g, '/');
+
 if (!content.includes('<AnnotationPanel')) {
   const templateMatch = content.match(/<template[^>]*>/);
   if (templateMatch) {
     const insertPos = templateMatch.index + templateMatch[0].length;
-    const panelMarkup = `\n  <AnnotationPanel :filePath="'${vueFile.replace(/\\/g, '\\\\')}'" />\n`;
+    const panelMarkup = `\n  <AnnotationPanel :filePath="'${rootRelativePath}'" />\n`;
     content = content.slice(0, insertPos) + panelMarkup + content.slice(insertPos);
   } else {
     // 没有 template，创建一个最小模板
     const scriptClose = content.indexOf('</script>');
     const before = content.slice(0, scriptClose);
     const after = content.slice(scriptClose);
-    const tmpl = `<template>\n  <AnnotationPanel :filePath="'${vueFile.replace(/\\/g, '\\\\')}'" />\n</template>\n`;
+    const tmpl = `<template>\n  <AnnotationPanel :filePath="'${rootRelativePath}'" />\n</template>\n`;
     content = before + tmpl + after;
   }
+} else {
+  // 兼容老版本：如果已经注入过，强制将其绝对路径替换为相对路径
+  content = content.replace(/<AnnotationPanel\s+:filePath="[^"]+"\s*\/>/g, `<AnnotationPanel :filePath="'${rootRelativePath}'" />`);
 }
 
 // 写回文件
