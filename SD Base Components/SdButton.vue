@@ -5,7 +5,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineOptions } from 'vue';
 defineOptions({ name: 'SdButton' });
 </script>
 

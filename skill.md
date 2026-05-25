@@ -72,8 +72,8 @@ dependency:
    - 若提及 XDR/安全托管服务 -> 加载 z-XDR/nav-xdr.md
    - 若提及 DR/端点安全 -> 加载 z-DR/nav-dr.md
   ↓
-⑦ 强制检视：「7. 常见踩坑与绝对红线 (Anti-Patterns)」 —— 必须对照此列表选择正确的封装组件或应用解决方案。
-⑧ 生成 .vue 单文件代码（优先引入并使用 SD Base Components 下的二次封装组件）
+⑦ 强制检视：「7. 常见踩坑与绝对红线 (Anti-Patterns)」 —— 必须对照此列表选择正确的二开组件或应用解决方案。
+⑧ 规范样式提取与生成：在开发制作页面 Demo 提取或还原组件规范样式时，优先引入并使用 `SD Base Components/` 下的二次封装组件作为基础进行引用与拓展定制开发，绝不重复编写繁琐的 CSS 补丁去覆盖原生 Ant Design Vue 样式。
 ⑨ 执行「6. 验收自检清单」→ 修复 → 交付
 ```
 
@@ -107,7 +107,32 @@ dependency:
 | [dos-and-donts.md](SD%20patterns/dos-and-donts.md) | 17 条成对实践规则 + 12 条自检 checklist |
 | [impl-vue3.md](SD%20patterns/impl-vue3.md) | Vue3 + ant-design-vue 4.x 表格/标签/图标实现规则 |
 
-### 5.3 SD Components/ — 通用组件视觉规范
+### 5.3 SD Base Components/ — 二开基础组件库 (优先引用开发)
+
+在开发过程中，必须优先直接引入本目录下的二次封装组件，避免重复编写 CSS 覆盖 Ant Design 默认皮肤：
+
+| 文件 / 组件 | 基础底座 | 说明与调用方式 |
+|---|---|---|
+| [index.ts](SD%20Base%20Components/index.ts) | - | 导出全部封装组件与全局 `SdMessage` 消息提示对象 |
+| [SdAlert.vue](SD%20Base%20Components/SdAlert.vue) | `a-alert` | 警告提示组件（高 32px，无边框，2px 圆角，普通/告警双色） |
+| [SdButton.vue](SD%20Base%20Components/SdButton.vue) | `a-button` | 按钮组件（默认锁定 SeerDesign 规范高度 32px） |
+| [SdCheckbox.vue](SD%20Base%20Components/SdCheckbox.vue) | `a-checkbox` | 复选框组件（支持 type="button" 按钮式右上角三角色块，禁用不隐藏） |
+| [SdDatePicker.vue](SD%20Base%20Components/SdDatePicker.vue) | `a-select` + `a-range-picker` | 复合日期筛选器组件（整合左侧快捷和右侧输入，自适应宽度） |
+| [SdDetailCard.vue](SD%20Base%20Components/SdDetailCard.vue) | - | 详情概览卡片布局组件（左32px图标，中间Label+Value网格，右上角动作按钮组） |
+| [SdDrawer.vue](SD%20Base%20Components/SdDrawer.vue) | `a-drawer` | 抽屉组件（48px头、56px底部左对齐按钮，内容32px边距，隐藏横向滚动条） |
+| [SdForm.vue](SD%20Base%20Components/SdForm.vue) | `a-form` | 表单组件（强制左对齐，抽屉类下输入组件强缩为 420px 宽度） |
+| [SdInput.vue](SD%20Base%20Components/SdInput.vue) | `a-input` / `a-textarea` / `a-input-password` | 输入框组件（高度 24/32/40px，无焦点发光，前后置无缝贴合） |
+| [SdModal.vue](SD%20Base%20Components/SdModal.vue) | `a-modal` | 弹窗组件（48px头，56px底部右对齐“主左取消右”按钮，32px侧内边距） |
+| [SdPageTitle.vue](SD%20Base%20Components/SdPageTitle.vue) | - | 页头标题组件（支持 basic/drilldown/tabs 多样化，固定高度 48px） |
+| [SdRadio.vue](SD%20Base%20Components/SdRadio.vue) / [SdRadioConfigPanel.vue](SD%20Base%20Components/SdRadioConfigPanel.vue) | `a-radio` | 单选框组件与关联配置面板（向上箭头支持 arrowOffset 变量对齐鱼眼） |
+| [SdSearch.vue](SD%20Base%20Components/SdSearch.vue) | `a-input` | 搜索输入框（无双层边框，32px 锁定高度，无外发光） |
+| [SdSelect.vue](SD%20Base%20Components/SdSelect.vue) | `a-select` | 下拉选择器（高度32px，移除对勾，多选 maxTagCount 响应式） |
+| [SdSwitch.vue](SD%20Base%20Components/SdSwitch.vue) | `a-switch` | 开关组件（16px 超轻量高度，无文字显示，清除焦点外发光） |
+| [SdTabs.vue](SD%20Base%20Components/SdTabs.vue) | `a-tabs` | 标签页组件（下划线激活指示器，分段式 segment-heavy/light 按钮风格） |
+| [SdTag.vue](SD%20Base%20Components/SdTag.vue) | `a-tag` | 标签组件（多色轻重、风险点状、无缝数字拼接、交互式 add 新增标签） |
+| [SdTree.vue](SD%20Base%20Components/SdTree.vue) | `a-tree` | 树形组件（32px行高，方形展开 +/- 键，连接线对齐，右Hover操作区，受控搜索快照） |
+
+### 5.4 SD Components/ — 通用组件视觉规范
 
 | 文件 | 组件 |
 |---|---|
@@ -132,7 +157,7 @@ dependency:
 | [comp-tree.md](SD%20Components/comp-tree.md) | 树组件 |
 | [design-form.md](SD%20Components/design-form.md) | 表单规范（表单项、布局模式、场景示例） |
 
-### 5.4 SD Page Templates/ — 页面模板 & 导航框架
+### 5.5 SD Page Templates/ — 页面模板 & 导航框架
 
 | 文件 / 目录 | 模板 |
 |---|---|
@@ -153,7 +178,7 @@ dependency:
 | [Tree-5.0-nav/basic_display_table.md](SD%20Page%20Templates/Tree-5.0-nav/basic_display_table.md) | 纯左树导航基础展示表格页规范 |
 
 
-### 5.5 业务产品专属导航规范目录（按提示词需求读取）
+### 5.6 业务产品专属导航规范目录（按提示词需求读取）
 
 这些是各具体产品的专属业务规范和导航布局，与 SD 公共规范存在扩充关系。开发时请根据具体的提示词动态调用：
 
@@ -164,7 +189,7 @@ dependency:
 | **XDR** | [nav-xdr.md](z-XDR/nav-xdr.md) | Sangfor XDR 导航框架规范（GPT 标签 / 双行 Header / 互斥手风琴） |
 | **DR** | [nav-dr.md](z-DR/nav-dr.md) | DR 下一代端点安全导航框架及视觉红线说明 |
 
-### 5.6 assets/ — 资产文件
+### 5.7 assets/ — 资产文件
 
 | 文件 | 内容 |
 |---|---|
@@ -200,13 +225,27 @@ dependency:
 | 组件 | 常见错误现象 | 强制解决办法 (必须执行) |
 |---|---|---|
 | **按钮 (Button)** | 自动添加未声明的图标；文字变成红色；默认高度不是 32px | **必须使用 `<SdButton>`**。该组件已默认锁死 32px 高度。若使用原生 `<a-button>`，必须显式加上 `style="height: 32px;"` 且绝不能乱猜图标、禁止红色文字。 |
+| **警告提示 (Alert)** | 出现边框线；圆角过大；普通/告警背景颜色反差不明显 | **必须使用 `<SdAlert>`**。原生使用必须强制设定 `min-height: 32px` 并去除边框线。 |
+| **复选框 (Checkbox)** | 按钮样式没有右上角直角三角色块；禁用时错把已选三角色块隐藏 | **必须使用 `<SdCheckbox>`**。按钮样式需支持 `type="button"` 并使用 CSS 伪元素绘制三角色块。 |
+| **日期选择器 (DatePicker)** | 快捷选择与日期框分离成两个带边框控件；抽屉内宽度无法自适应拉伸 | **必须使用 `<SdDatePicker>`**。该组件进行了响应式重构，自适应宽度并锁定外边框及 1px 分割线。 |
+| **详情卡片 (DetailCard)** | 属性 Label 与 Value 无法对齐；右侧操作按钮垂直居中 | **必须使用 `<SdDetailCard>`**。支持 Label-Value 网格自适应列和顶部对齐右上角操作按钮。 |
+| **输入框 (Input)** | 拥有蓝色外发光焦点阴影；文本域高度不够；前后置拼接存在空隙或双边框 | **必须使用 `<SdInput>`**。原生 `a-input` 必须加上 `:box-shadow: none !important; border-color: var(--color-blue) !important;`。 |
+| **弹窗 (Modal)** | 标题高度和底部高度不满足 SeerDesign 规范；主/次操作按钮顺序反常（右对齐时主在右） | **必须使用 `<SdModal>`**。支持标题 48px，底部 56px，内部滚动，且底部按钮“主按钮在左，取消按钮在右，整体右对齐”。 |
+| **页面标题 (PageTitle)** | 没有返回键；Tab 下划线与底边线分离出现双底线 | **必须使用 `<SdPageTitle>`**。支持 basic/drilldown/tabs 并实现了下划线 2px 与底线重合。 |
+| **单选框 (Radio)** | 顶部的配置面板小箭头无法和 Radio 鱼眼对齐 | **必须使用 `<SdRadio>` 与 `<SdRadioConfigPanel>`**。配置面板通过传递 `arrowOffset` 控制直角小箭头的偏移位置。 |
 | **表格 (Table)** | 出现第一行空白行；字段过多时不会自动冻结操作列；表格内 Switch 开关样式异常 | **必须使用 `<SdTable>`**。若无法使用，则必须：1. CSS 强行清除第一行空白；2. Columns 中最后的操作列必须加上 `fixed: 'right'`；3. 覆盖 Switch 高度至规范尺寸。 |
 | **选择器 (Select)** | 高度不对；描边圆角不对；下拉面板里面的样式不对 | **必须使用 `<SdSelect>`**。若无法使用，原生 `a-select` 必须手动约束 `.ant-select-selector { height: 32px !important; border-radius: 2px !important; }`。 |
+| **开关 (Switch)** | 尺寸过大；内部塞入了“开启/关闭”文字导致变形 | **必须使用 `<SdSwitch>`**。锁死 28px * 16px 尺寸，隐藏所有内嵌文本并去除焦点阴影。 |
+| **标签页 (Tabs)** | 线条式未激活色不正确；分段重标签/轻量样式颜色与圆角混淆 | **必须使用 `<SdTabs>`**。通过 `type="underline" / "segment-heavy" / "segment-light"` 属性无缝覆盖底座。 |
+| **标签 (Tag)** | 圆角和内边距不对；点状没有居中；双色数字拼接不贴合 | **必须使用 `<SdTag>`**。包含 dot、text-number 及 add 模式，全面锁死 SeerDesign 调色板及 10% 透明度规则。 |
+| **树组件 (Tree)** | 默认三角键过小；缺失连接线；没有操作 Hover 菜单或统计数字 | **必须使用 `<SdTree>`**。封装了方形 +/- 键，统一 32px 行高，对齐连接线和受控搜索过滤。 |
 | **表单 (Form)** | 星号不对齐；Label 与内容间距过大；内容区的组件长短不一无法两端对齐 | **必须使用 `<SdForm>`**。原生使用时必须：1. 统一设定表单项宽度（如 `width: 100%`）；2. 使用统一的 Label 栅格比例；3. CSS 强行修正 `::before` 星号的对齐。 |
-| **抽屉 (Drawer)** | 关闭按钮自动跑到最左上角；保存/取消按钮在右下方（位置异常） | **必须使用 `<SdDrawer>`**。若使用原生，必须通过 `#title` 和 `#extra` 插槽手动将关闭按钮放在左侧，动作按钮放在指定位置，禁止使用默认 header 布局。 |
+| **抽屉 (Drawer)** | 关闭按钮自动跑到最左上角；保存/取消按钮在右下方（位置异常）；内容溢出出现横向滚动条 | **必须使用 `<SdDrawer>`**。支持标题 48px，底部 56px，内容左右 32px 内边距与 x 方向 overflow 隐藏。 |
 | **搜索框 (Search)** | 尺寸默认给了 40px；输入框内又套了一个框 | **必须使用 `<SdSearch>`**。若使用原生 `<a-input-search>`，必须强制设置 `size="middle"` (对应 32px，千万别用 large)，并仔细检查 DOM 结构避免二次嵌套。 |
 
-> **最高指令**：在遇到上述组件时，你的首选方案是引入 `import { SdButton, SdTable, SdSelect, SdForm, SdDrawer, SdSearch } from '../../../SKillS/skill_seerdesign_demo/SD Base Components';` 并直接使用它们，而不是每次写冗长的 CSS 来修补 `a-xxx`。
+> **最高指令**：在开发和拼装 Demo 页面时，你的首选方案是引入：
+> `import { SdButton, SdSwitch, SdTable, SdSelect, SdForm, SdDrawer, SdSearch, SdAlert, SdCheckbox, SdRadio, SdRadioConfigPanel, SdDatePicker, SdDetailCard, SdInput, SdModal, SdPageTitle, SdTabs, SdTag, SdTree, SdMessage } from '../../../SKillS/skill_seerdesign_demo/SD Base Components';`
+> 并直接使用它们，绝不鼓励每次写冗长的 CSS 来修补 `a-xxx` 默认样式！
 
 - 严禁使用 AntD 默认的蓝色焦点阴影
 - 严禁使用 `size="small"` 控制表格行高，必须通过 CSS 强制锁定
@@ -214,16 +253,4 @@ dependency:
 - 所有颜色必须使用 SeerDesign Token CSS 变量
 - 图标使用 `@ant-design/icons-vue` 的稳定图标，不确定是否存在时优先省略
 - 如果规范中查不到某个值，**停下来追问用户**，不得猜测
-
-## 8. 高效开发与快修协议 (Style Quick-Fix / Hotfix Mode)
-
-为了保障在敏捷迭代和细节打磨阶段的高效交付，当用户在输入提示词中明确提及“快修”意图（包含以下特定修饰指令）时，系统必须立即跳过重型自动化工具和多阶段计划文档，切换为**“静态分析、极速编码”**的秒修模式。
-
-### 8.1 快修指令对照表
-
-| 触发指令词 | 激活工作模式 | 行为特征与执行约束 |
-|---|---|---|
-| **“样式快修”** 或 **“界面微调”** | **极速视觉/布局修复模式** | 1. **禁用浏览器子代理**：100% 禁用 headless 浏览器加载 and 模拟操作。<br>2. **静态 DOM 级推导**：直接结合项目文件和组件库的原生 DOM 骨架进行逻辑样式覆盖。<br>3. **极速写入与 Diff**：利用代码修改工具秒级写入 CSS 规则，立即交付，由用户本地刷新实时验证。 |
-| **“极速改码”** 或 **“代码秒修”** | **直接静态修改模式** | 1. **跳过完整文档流**：不强制撰写实现计划 `implementation_plan.md` 等繁琐的工程文档。<br>2. **点对点外科手术式修改**：仅对目标文件指定行进行极速修改，确保无其他冗余代码改动。 |
-| *(无特殊指令说明)* | **标准全栈工程流** | 执行完整的设计自检、编写 `implementation_plan.md`、配合浏览器子代理（`browser_subagent`）进行多阶段验证及完整的走查报告。 |
-
+- **全局提示直接引用 `SdMessage`**（如 `SdMessage.success()`），样式已经通过全局 css 完全自动适配。

@@ -6,7 +6,6 @@
 
 <script setup lang="ts">
 import { computed, useAttrs } from 'vue';
-import { defineOptions } from 'vue';
 
 defineOptions({ name: 'SdForm' });
 
@@ -69,20 +68,20 @@ const mergedAttrs = computed(() => {
     min-height: 32px;
   }
 
-  /* 表单中输入框/下拉框宽度一致规范：全部强制为 420px */
   &.sd-form--drawer {
-    /* 仅对普通输入框生效，排除滑块组内的输入框 */
+    /* 仅对普通输入框生效，排除滑块组内的输入框与日期选择器内部子项 */
     .ant-form-item-control-input-content > .ant-input,
     .ant-form-item-control-input-content > .ant-input-affix-wrapper,
     .ant-form-item-control-input-content > .ant-input-number,
     .ant-form-item-control-input-content > .sd-select,
-    .ant-form-item-control-input-content > .ant-select,
-    .ant-form-item-control-input-content > .ant-picker,
+    .ant-form-item-control-input-content > .ant-select:not(.sd-datepicker-group *),
+    .ant-form-item-control-input-content > .ant-picker:not(.sd-datepicker-group *),
+    .sd-datepicker-group,
     .ant-input:not(.slider-input-group *):not(.scope-condition-list *),
     .ant-input-affix-wrapper:not(.slider-input-group *):not(.scope-condition-list *),
     .ant-input-number:not(.slider-input-group *):not(.scope-condition-list *),
-    .ant-select:not(.slider-input-group *):not(.scope-condition-list *),
-    .ant-picker:not(.slider-input-group *):not(.scope-condition-list *) {
+    .ant-select:not(.slider-input-group *):not(.scope-condition-list *):not(.sd-datepicker-group *),
+    .ant-picker:not(.slider-input-group *):not(.scope-condition-list *):not(.sd-datepicker-group *) {
       width: 420px !important;
       min-width: 420px !important;
       max-width: 420px !important;

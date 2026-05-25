@@ -12,8 +12,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineOptions } from 'vue';
-
 defineOptions({ name: 'SdDrawer' });
 </script>
 
@@ -50,6 +48,7 @@ defineOptions({ name: 'SdDrawer' });
 
   .ant-drawer-body {
     padding: 0 32px !important; /* 内容左右边距32px */
+    overflow-x: hidden !important; /* 强制二开抽屉绝不允许出现横向滚动条 */
   }
 
   .ant-drawer-footer {

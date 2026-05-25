@@ -16,7 +16,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineOptions } from 'vue';
 import { SearchOutlined } from '@ant-design/icons-vue';
 defineOptions({ name: 'SdSearch' });
 </script>

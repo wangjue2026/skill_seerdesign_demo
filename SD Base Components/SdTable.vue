@@ -14,7 +14,6 @@
 
 <script setup lang="ts">
 import { computed, useAttrs } from 'vue';
-import { defineOptions } from 'vue';
 
 defineOptions({ name: 'SdTable' });
 

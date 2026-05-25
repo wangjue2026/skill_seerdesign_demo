@@ -13,10 +13,10 @@
 
     <!-- 📍 ================== 绝对打点渲染图层 ================== -->
     <div v-if="showAnnotateMode" class="lda-dots-layer">
-      <div v-for="(item, index) in comments" :key="item.id" class="lda-dot-wrapper" :style="{ left: item.xPercent + '%', top: item.yPercent + '%' }">
+      <div v-for="(item, index) in filteredComments" :key="item.id" class="lda-dot-wrapper" :style="{ left: item.xPercent + '%', top: item.yPercent + '%' }">
         <div class="lda-dot-group">
           <!-- 打点数字气泡 -->
-          <div class="lda-dot-bubble" @click.stop="editDot(index)">
+          <div class="lda-dot-bubble" @click.stop="editDot(item)">
             {{ index + 1 }}
           </div>
           <!-- 卡片悬浮详情 -->
@@ -26,7 +26,7 @@
                 <span class="lda-dot-indicator"></span>
                 Case {{ index + 1 }}: {{ item.title }}
               </span>
-              <button @click.stop="deleteComment(index)" class="lda-btn-delete">删除</button>
+              <button @click.stop="deleteComment(item.id)" class="lda-btn-delete">删除</button>
             </div>
             <p class="lda-dot-card-desc">{{ item.content }}</p>
             <div class="lda-dot-card-footer">
@@ -96,24 +96,24 @@
           </button>
 
           <div class="lda-list-header">
-            <span>当前批注规范目录 (Live Specs)</span>
+            <span>全部批注汇总 ({{ comments.length }} 条)</span>
             <button @click="copyMarkdown" class="lda-text-btn">📋 复制 Markdown 交付件</button>
           </div>
 
           <div v-if="comments.length === 0" class="lda-empty-state">暂无批注，请开启打点模式在画布中点击。</div>
 
-          <div v-for="(item, index) in comments" :key="item.id" class="lda-list-item">
+          <div v-for="(item, index) in comments" :key="item.id" class="lda-list-item" :class="{ 'lda-list-item-current': item.scene === props.scene }">
             <div class="lda-list-item-header">
               <div style="display:flex;align-items:center;gap:8px;">
                 <span class="lda-list-index">{{ index + 1 }}</span>
                 <h4>Case {{ index + 1 }}: {{ item.title }}</h4>
               </div>
-              <button @click="deleteComment(index)" class="lda-btn-del-hover">删除</button>
+              <button @click="deleteComment(item.id)" class="lda-btn-del-hover">删除</button>
             </div>
             <p class="lda-list-item-desc">{{ item.content }}</p>
             <div class="lda-list-item-footer">
-              <span>坐标: X: {{ item.xPercent.toFixed(1) }}% , Y: {{ item.yPercent.toFixed(1) }}%</span>
-              <span class="lda-item-coord-badge">物理标号: #{{ item.id }}</span>
+              <span class="lda-scene-tag">📍 {{ item.scene || '默认页面' }}</span>
+              <span class="lda-item-coord-badge">坐标: {{ item.xPercent.toFixed(1) }}%, {{ item.yPercent.toFixed(1) }}%</span>
             </div>
           </div>
         </template>
@@ -159,8 +159,8 @@
     <div v-if="showAddModal" class="lda-modal-mask">
       <div class="lda-modal">
         <div class="lda-modal-header">
-          <div class="lda-modal-index">{{ editingIndex !== null ? editingIndex + 1 : comments.length + 1 }}</div>
-          <h3>{{ editingIndex !== null ? '编辑交互逻辑标点' : '建立交互逻辑标点' }}</h3>
+          <div class="lda-modal-index">{{ editingId !== null ? getDisplayIndex(editingId) : filteredComments.length + 1 }}</div>
+          <h3>{{ editingId !== null ? '编辑交互逻辑标点' : '建立交互逻辑标点' }}</h3>
         </div>
         <div class="lda-modal-coords">
           <div>📍 标定 X 轴: <span>{{ tempXPercent.toFixed(1) }}%</span></div>
@@ -186,7 +186,8 @@
 import { ref, computed, onMounted } from 'vue';
 
 const props = defineProps({
-  filePath: { type: String, required: true }
+  filePath: { type: String, required: true },
+  scene: { type: String, default: 'default' }
 });
 
 const isSidebarOpen = ref(false);
@@ -195,7 +196,14 @@ const showAnnotateMode = ref(true);
 const isPlacingDot = ref(false);
 
 const comments = ref([]);
-const editingIndex = ref(null);
+const filteredComments = computed(() => {
+  return comments.value.filter(c => !c.scene || c.scene === props.scene);
+});
+const editingId = ref(null);
+
+function getDisplayIndex(id) {
+  return filteredComments.value.findIndex(c => c.id === id) + 1;
+}
 
 const agentRef = ref(null);
 const localMouseX = ref(0);
@@ -354,15 +362,14 @@ const handleGridMouseMove = (e) => {
 
 const handleGridClick = () => {
   isPlacingDot.value = false;
-  editingIndex.value = null;
+  editingId.value = null;
   newCommentTitle.value = '';
   newCommentContent.value = '';
   showAddModal.value = true;
 };
 
-const editDot = (index) => {
-  editingIndex.value = index;
-  const item = comments.value[index];
+const editDot = (item) => {
+  editingId.value = item.id;
   newCommentTitle.value = item.title;
   newCommentContent.value = item.content;
   tempXPercent.value = item.xPercent;
@@ -372,7 +379,7 @@ const editDot = (index) => {
 
 const cancelDotPlacement = () => {
   showAddModal.value = false;
-  editingIndex.value = null;
+  editingId.value = null;
   showToast('已取消坐标标定');
 };
 
@@ -382,11 +389,14 @@ const submitNewDot = () => {
     return;
   }
   
-  if (editingIndex.value !== null) {
+  if (editingId.value !== null) {
     // Edit existing
-    comments.value[editingIndex.value].title = newCommentTitle.value;
-    comments.value[editingIndex.value].content = newCommentContent.value;
-    showToast(`Case ${editingIndex.value + 1} 已更新`);
+    const idx = comments.value.findIndex(c => c.id === editingId.value);
+    if (idx !== -1) {
+      comments.value[idx].title = newCommentTitle.value;
+      comments.value[idx].content = newCommentContent.value;
+    }
+    showToast(`Case 更新成功`);
   } else {
     // Add new
     comments.value.push({
@@ -394,21 +404,25 @@ const submitNewDot = () => {
       title: newCommentTitle.value,
       content: newCommentContent.value,
       xPercent: tempXPercent.value,
-      yPercent: tempYPercent.value
+      yPercent: tempYPercent.value,
+      scene: props.scene
     });
-    showToast(`成功标定 Case ${comments.value.length}！数据已写入运行内存。`);
+    showToast(`成功标定！数据已写入运行内存。`);
   }
   
   showAnnotateMode.value = true;
   showAddModal.value = false;
-  editingIndex.value = null;
+  editingId.value = null;
   persist();
 };
 
-const deleteComment = (index) => {
-  comments.value.splice(index, 1);
-  persist();
-  showToast('批注已删除，最新源码数据已重写');
+const deleteComment = (id) => {
+  const idx = comments.value.findIndex(c => c.id === id);
+  if (idx !== -1) {
+    comments.value.splice(idx, 1);
+    persist();
+    showToast('批注已删除，最新源码数据已重写');
+  }
 };
 
 const copyAndSaveSource = () => {
@@ -426,11 +440,24 @@ const copyAndSaveSource = () => {
 };
 
 const copyMarkdown = () => {
+  // Group all comments by scene
+  const grouped = {};
+  comments.value.forEach(c => {
+    const sceneKey = c.scene || '默认页面';
+    if (!grouped[sceneKey]) grouped[sceneKey] = [];
+    grouped[sceneKey].push(c);
+  });
+
   let md = `# 交互说明交付书\n\n`;
-  comments.value.forEach((c, idx) => {
-    md += `### 📝 Case ${idx + 1}: ${c.title}\n`;
-    md += `**物理标号**: #${c.id} | **坐标**: (${c.xPercent.toFixed(1)}%, ${c.yPercent.toFixed(1)}%)\n\n`;
-    md += `${c.content}\n\n---\n\n`;
+  md += `> 共 ${comments.value.length} 条批注，覆盖 ${Object.keys(grouped).length} 个页面\n\n`;
+
+  Object.entries(grouped).forEach(([scene, items]) => {
+    md += `## 🗺 页面：${scene}\n\n`;
+    items.forEach((c, idx) => {
+      md += `### 📝 Case ${idx + 1}: ${c.title}\n`;
+      md += `**页面路由**: \`${scene}\` | **坐标**: (${c.xPercent.toFixed(1)}%, ${c.yPercent.toFixed(1)}%)\n\n`;
+      md += `${c.content}\n\n---\n\n`;
+    });
   });
   
   const textarea = document.createElement('textarea');
@@ -889,6 +916,7 @@ onMounted(() => {
 .sase-live-agent .lda-list-item {
   background-color: #0f172a; border: 1px solid #1e293b; border-radius: 12px;
   padding: 14px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.2s;
+  position: relative;
 }
 .sase-live-agent .lda-list-item:hover { border-color: #1e1b4b; }
 .sase-live-agent .lda-list-item:hover .lda-btn-del-hover { opacity: 1; }
@@ -914,6 +942,25 @@ onMounted(() => {
 .sase-live-agent .lda-item-coord-badge {
   background-color: rgba(30,27,75,0.8); color: #818cf8; border: 1px solid #312e81;
   padding: 2px 6px; border-radius: 4px; font-family: sans-serif;
+}
+
+.sase-live-agent .lda-scene-tag {
+  font-size: 10px; font-weight: 700; color: #6ee7b7;
+  background-color: rgba(6, 78, 59, 0.3); border: 1px solid rgba(52, 211, 153, 0.3);
+  padding: 2px 8px; border-radius: 4px; max-width: 180px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.sase-live-agent .lda-list-item-current {
+  border-color: rgba(99, 102, 241, 0.4) !important;
+  background-color: rgba(49, 46, 129, 0.15) !important;
+}
+.sase-live-agent .lda-list-item-current::before {
+  content: '当前页';
+  position: absolute; right: 12px; top: 10px;
+  font-size: 9px; font-weight: 800; color: #818cf8;
+  background-color: rgba(30,27,75,0.9); border: 1px solid #312e81;
+  padding: 1px 6px; border-radius: 4px;
 }
 
 .sase-live-agent .lda-rule-alert {
